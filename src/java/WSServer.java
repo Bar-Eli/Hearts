@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.json.JsonObject;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -25,7 +24,7 @@ import org.json.JSONObject;
 @ServerEndpoint("/HeartsProject")
 public class WSServer 
 {
-
+    
     private static ArrayList<Session> clients = new ArrayList();
     private Game g;
     //1. OnOpen
