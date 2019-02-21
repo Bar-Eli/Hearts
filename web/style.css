@@ -1,0 +1,51 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Feb 12, 2019, 12:44:29 PM
+    Author     : Alon
+*/
+
+.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    overflow: hidden;
+    background-image: url("res/Background.png");
+    background-size: cover;
+    /*Just to visualize the extent*/   
+}
+
+.tableSide {
+    padding: 0;
+    position: relative;
+    align-content: center;
+    max-height: 100%;
+    min-height: 80%;
+    width: 100%;
+    border: 1px solid white;
+    align-items: center;
+
+}
+
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    /*border: 1px solid black;*/
+    border: 0;
+    height: 50px;
+    width:50px;
+}
+
+.playingCards .card {
+    box-sizing: initial;
+    font-size: larger;
+}
+
