@@ -8,6 +8,8 @@
 
 
 
+/* global mag */
+
 $(document).ready(function ()
 {
     var webSocket;
@@ -62,20 +64,20 @@ $(document).ready(function ()
     // Detect card clicked by user.
     var cardClicked; // Clicked card value  in 2 chars string formation.
     var CardLI; // Card li element.
-    
+
     $("li").click(function () {
         var suits = new Object();
         suits["♠"] = 's';
         suits["♥"] = 'h';
         suits["♦"] = 'd';
         suits["♣"] = 'c';
-        
+
         rank = this.firstElementChild.firstElementChild.innerHTML;
         if (rank === "10")
             rank = "t";
         suit = suits[this.firstElementChild.lastElementChild.innerHTML];
         cardClicked = rank + suit;
-        CardLI = this; 
+        CardLI = this;
     });
 
     // Play button click
@@ -89,18 +91,25 @@ $(document).ready(function ()
         // Change card on board
         var playerCard = $("#playerCard");
         changeCard(cardClicked, playerCard[0]);
+        sendMessage(cardClicked);
 
         // Remove from player hand
         CardLI.remove();
 
-        // Remove from other players
-        $("#northHand")[0].firstElementChild.remove();
-        $("#westHand")[0].firstElementChild.remove();
-        $("#eastHand")[0].firstElementChild.remove();
 
         CardLI = undefined; // force playing only when a card is selected.
 
     });
+
+    function playCard(player, cardPlayed)
+    {
+        var handID = "#" + player + "Hand";
+        var cardID = "#" + player + "Card";
+
+        $(handID)[0].firstElementChild.remove();
+        changeCard(cardPlayed, $(cardID)[0]);
+
+    }
 
 
     function writeResponse(data)
@@ -138,22 +147,18 @@ $(document).ready(function ()
             if (event.data === undefined)
                 return;
 
-
-
             writeResponse(event.data);
         };
 
         webSocket.onmessage = function (event) {
-            // var result = JSON.parse(event.data);
 
-            // result points to an object
-            // has two fields : name and data
-            //writeResponse( "user: " + result.name);
-            //  writeResponse("data: " + result.data);
+            var msg = JSON.parse(event.data); // Read message from server.
 
-            var msg = JSON.parse(event.data);
-            if (msg["type"] === "init")
+            if (msg["type"] === "init") // On Open message -- deal cards.
                 dealCards(msg["hand"]);
+            if (msg["type"] === "play")
+                playCard(msg["player"], msg["card"]);
+            
 
         };
 
@@ -165,18 +170,16 @@ $(document).ready(function ()
 
     }
 
-    function sendMessage()
+    function sendMessage(data)
     {
         // read data from user and send to server
-        //var name = document.getElementById('name').value;
-        //var data = document.getElementById('message').value;
         /*  
          var obj = {"name": name,"data":data, "to": "everyone"};
          var objToSend = JSON.stringify(obj);
          webSocket.send(objToSend);
          */
         //webSocket.send(name + ":" + data);
-        webSocket.send("Fucking Test");
+        webSocket.send(data);
     }
 
     createConnection();

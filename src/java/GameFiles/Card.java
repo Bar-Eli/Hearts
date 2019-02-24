@@ -1,0 +1,112 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package GameFiles;
+
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.TreeBidiMap;
+
+/**
+ *
+ * @author Alon
+ */
+public class Card implements Comparable<Card>
+{
+
+    // Constants
+    public static BidiMap<Integer, Character> suitsMap = new TreeBidiMap<Integer, Character>() // Suits' number to char dictionary.
+    {
+	{
+	    put(1, 'c');
+	    put(2, 'd');
+	    put(3, 's');
+	    put(4, 'h');
+	}
+    };
+    public static BidiMap<Integer, Character> cardsMap = new TreeBidiMap<Integer, Character>() // Card's number to char dictionary.
+    {
+	{
+	    put(2, '2');
+	    put(3, '3');
+	    put(4, '4');
+	    put(5, '5');
+	    put(6, '6');
+	    put(7, '7');
+	    put(8, '8');
+	    put(9, '9');
+	    put(10, 't');
+	    put(11, 'j');
+	    put(12, 'q');
+	    put(13, 'k');
+	    put(14, 'a');
+	}
+    };
+
+    // Members
+    private int suit; // Card's suit (Club / Dimond / Spade / Heart).
+    private int val; // Card's vlaue (from 2 to A).
+
+    // Constructors
+    public Card() // Reset values
+    {
+	this.suit = 0;
+	this.val = 0;
+    }
+
+    public Card(int suit, int val) // Given values as integers.
+    {
+	if (suit < 1 || suit > 4 || val < 2 || val > 14)
+	{
+	    System.out.println("Error");
+	    return;
+	}
+
+	this.suit = suit;
+	this.val = val;
+    }
+
+    public Card(String c) // Given values as String (e.g. "3c").
+    {
+	this.val = cardsMap.getKey(c.charAt(0)); // Assign card's value
+	this.suit = suitsMap.getKey(c.charAt(1)); // Assign card's suit
+
+    }
+
+    public Card(Card c) // Copy constructor
+    {
+	this.suit = c.suit;
+	this.val = c.val;
+    }
+
+    // Getters and Setters
+    public int getSuit() {
+	return suit;
+    }
+
+    public void setSuit(int suit) {
+	this.suit = suit;
+    } 
+
+    public int getVal() {
+	return val;
+    }
+
+    public void setVal(int val) {
+	this.val = val;
+    }
+
+    @Override
+    public String toString() {
+	return cardsMap.get(this.val).toString() + suitsMap.get(this.suit);
+    }
+
+    @Override
+    public int compareTo(Card c) {
+	return (this.suit * 100 + this.val) - (c.suit * 100 + c.val);
+    }
+
+}

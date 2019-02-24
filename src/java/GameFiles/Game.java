@@ -5,9 +5,14 @@
  */
 package GameFiles;
 
+import com.sun.codemodel.util.JavadocEscapeWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.apache.jasper.tagplugins.jstl.ForEach;
 
 /**
  *
@@ -16,90 +21,44 @@ import java.util.List;
 public class Game
 {
 
-    public Integer[] deck;
+    // Constants
+    public static final int numOfSuits = 4;
+    public static final int numOfPlayers = 4;
+    public static final int cardsInSuit = 13;
+    public static final int deckSize = numOfSuits * cardsInSuit;
+    public static final int handSize = deckSize / numOfPlayers;
 
-    public Game()
-    {
+    // Members
+    private List<Card> deck; // Deck of cards for the game.
+    private Player[] players;
+    
 
-	this.deck = new Integer[52];
-	int k = 0;
+    // Constructor
+    public Game() {
 
-	for (int i = 1; i <= 4; i++)
-	{
-	    for (int j = 2; j <= 14; j++)
-	    {
-		this.deck[k] = i * 100 + j;
-		k++;
-	    }
-	}
-
-	List<Integer> tmp = Arrays.asList(this.deck);
-	Collections.shuffle(tmp);
-	this.deck = (Integer[]) tmp.toArray();
-	this.printDeck();
+	this.deck = new ArrayList<>(52); // Create new card deck for the game.
+	this.initDeck(); // put card values and shuffle.
+	this.players = new Player[numOfPlayers];
+	for (int i = 0; i < this.players.length; i++)
+	    this.players[i] = new Player(this.deck.subList(i * handSize, i * handSize + handSize));
     }
 
-    public void printDeck()
-    {
-	String deckStr = "";
-	for (Integer card : this.deck)
-	{
-	    deckStr += cardToStr(card) + ", ";
-	}
-	System.out.println(deckStr);
-    }
+    private void initDeck() {
 
-    public String cardToStr(int cardNum)
-    {
-	String card = "";
-	int suit = cardNum / 100;
-	int val = cardNum % 100;
-	if (val > 9)
-	{
-	    if (val == 10)
-		card = "t";
-	    if (val == 11)
-		card = "j";
-	    if (val == 12)
-		card = "q";
-	    if (val == 13)
-		card = "k";
-	    if (val == 14)
-		card = "a";
-	}
-	else
-	    card = "" + val;
+	for (int i = 1; i <= numOfSuits; i++)
+	    for (int j = 2; j <= cardsInSuit + 1; j++)
+		this.deck.add(new Card(i, j));
 
-	if (suit == 1)
-	    card += "c";
-//	    card += "♣";
-	if (suit == 2)
-	    card += "d";
-//	    card += "♦";
-	if (suit == 3)
-	    card += "s";
-//	    card += "♠";
-	if (suit == 4)
-	    card += "h";
-//	    card += "♥";
-
-	return card;
+	Collections.shuffle(this.deck);
 
     }
 
-    public String getHand()
-    {
-	String hand = "";
-	int[] handArr = new int[this.deck.length / 4];
-
-	for (int i = 0; i < handArr.length; i++)
-	    handArr[i] = this.deck[i];
-	Arrays.sort(handArr);
-	for (int i = 0; i < handArr.length; i++)
-	    hand += cardToStr(handArr[i]);
-	return hand;
+    // return client's hand in string formation
+    public String getHand() {
+	return this.players[0].handStr();
     }
 
+    
     public static void main(String[] args)
     {
 	Game g = new Game();
