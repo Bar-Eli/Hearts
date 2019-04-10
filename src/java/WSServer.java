@@ -27,7 +27,6 @@ public class WSServer
 
     private static ArrayList<Session> clients = new ArrayList();
     private Game g;
-    private Card clientCard;
 
     //1. OnOpen
     @OnOpen
@@ -38,34 +37,18 @@ public class WSServer
 	System.out.println(session.getId() + " Has opened a connection");
 	clients.add(session);
 
-	this.g = new Game();
-
-	JSONObject obj = new JSONObject();
-	obj.put("type", "init");
-	obj.put("hand", g.getHand());
-
-	// send client a message.           
-	try
-	{
-	    session.getBasicRemote().sendText(obj.toString());
-	} catch (IOException ex)
-	{
-	    Logger.getLogger(WSServer.class.getName()).log(Level.SEVERE, null, ex);
-	}
+	this.g = new Game(session);
+	this.g.playGame();
+	
     }
 
     //2. OnMessage
     @OnMessage
     public void onMessage(String message, Session session)
     {
-	System.out.println("Message received " + message);
+	//System.out.println("Message received " + message);
 	String c = message.toLowerCase();
-	this.clientCard = new Card(c);
-	
-	playCard("north", c);
-	playCard("east", c);
-	playCard("west", c);
-	
+	this.g.setClientCard(new Card(c));
 
     }
 

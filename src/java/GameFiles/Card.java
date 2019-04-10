@@ -5,6 +5,7 @@
  */
 package GameFiles;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.collections4.BidiMap;
@@ -18,7 +19,7 @@ public class Card implements Comparable<Card>
 {
 
     // Constants
-    public static BidiMap<Integer, Character> suitsMap = new TreeBidiMap<Integer, Character>() // Suits' number to char dictionary.
+    public static final BidiMap<Integer, Character> suitsMap = new TreeBidiMap<Integer, Character>() // Suits' number to char dictionary.
     {
 	{
 	    put(1, 'c');
@@ -27,7 +28,7 @@ public class Card implements Comparable<Card>
 	    put(4, 'h');
 	}
     };
-    public static BidiMap<Integer, Character> cardsMap = new TreeBidiMap<Integer, Character>() // Card's number to char dictionary.
+    public static final BidiMap<Integer, Character> cardsMap = new TreeBidiMap<Integer, Character>() // Card's number to char dictionary.
     {
 	{
 	    put(2, '2');
@@ -60,10 +61,7 @@ public class Card implements Comparable<Card>
     public Card(int suit, int val) // Given values as integers.
     {
 	if (suit < 1 || suit > 4 || val < 2 || val > 14)
-	{
-	    System.out.println("Error");
-	    return;
-	}
+	    System.out.println("Invalid card"); //	    return;
 
 	this.suit = suit;
 	this.val = val;
@@ -82,6 +80,7 @@ public class Card implements Comparable<Card>
 	this.val = c.val;
     }
 
+    //<editor-fold defaultstate="collapsed" desc="Getters and Setters">
     // Getters and Setters
     public int getSuit() {
 	return suit;
@@ -89,7 +88,7 @@ public class Card implements Comparable<Card>
 
     public void setSuit(int suit) {
 	this.suit = suit;
-    } 
+    }
 
     public int getVal() {
 	return val;
@@ -98,15 +97,44 @@ public class Card implements Comparable<Card>
     public void setVal(int val) {
 	this.val = val;
     }
+    //</editor-fold>
 
     @Override
     public String toString() {
 	return cardsMap.get(this.val).toString() + suitsMap.get(this.suit);
     }
 
+    // Comparing fuctions
     @Override
     public int compareTo(Card c) {
 	return (this.suit * 100 + this.val) - (c.suit * 100 + c.val);
     }
 
+    public boolean equals(Card c) {
+
+	return this.suit == c.suit && this.val == c.val;
+    }
+
+    public boolean equals(String cStr) {
+	Card c = new Card(cStr);
+	return this.equals(c);
+    }
+
+    public boolean isEmpty() {
+	return this.suit == 0 || this.val == 0;
+    }
+
+    public void clear() {
+	this.suit = 0;
+	this.val = 0;
+    }
+
+    public static void main(String[] args) {
+	Card[] cArr =
+	{
+	    new Card(1, 11), new Card(2, 13), new Card(4, 5)
+	};
+	System.out.println(Arrays.toString(cArr));
+
+    }
 }
