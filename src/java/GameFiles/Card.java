@@ -101,6 +101,8 @@ public class Card implements Comparable<Card>
 
     @Override
     public String toString() {
+	if(this.isEmpty())
+	    return "Empty";
 	return cardsMap.get(this.val).toString() + suitsMap.get(this.suit);
     }
 
@@ -114,7 +116,35 @@ public class Card implements Comparable<Card>
 
 	return this.suit == c.suit && this.val == c.val;
     }
+    
+    
+    @Override
+    public boolean equals(Object o) {
+	if (!(o instanceof Card))
+	    return false;
+	return this.equals((Card)o);
+    }
 
+    @Override
+    public int hashCode() {
+	int hash = 7;
+	hash = 71 * hash + this.suit;
+	hash = 71 * hash + this.val;
+	return hash;
+    }
+    
+    // ADD TO PROJECT FILE
+    // returns the points value of card
+    public int points() {
+	
+	if (this.getSuit() == suitsMap.getKey('h'))
+	    return 1;
+	if (this.equals("qs"))
+	    return 13;
+	
+	return 0;
+    }
+    
     public boolean equals(String cStr) {
 	Card c = new Card(cStr);
 	return this.equals(c);

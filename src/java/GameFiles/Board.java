@@ -6,6 +6,7 @@
 package GameFiles;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -30,9 +31,24 @@ public class Board
 	this.roundPoints = 0;
     }
 
+    // Copy constructor
+    public Board(Board b) {
+
+	this.table = new Card[Game.numOfPlayers];
+	for (int i = 0; i < this.table.length; i++)
+	    this.table[i] = new Card(b.table[i]);
+
+	this.roundSuit = b.roundSuit;
+	this.roundPoints = b.roundPoints;
+    }
+
     //<editor-fold defaultstate="collapsed" desc="Getters and Setters">
     public Card[] getTable() {
 	return table;
+    }
+
+    public List<Card> getTableList() {
+	return Arrays.asList(this.table);
     }
 
     public void setTable(Card[] table) {
@@ -61,6 +77,7 @@ public class Board
 	return "Board{" + "table=" + Arrays.toString(table) + ", roundSuit=" + Card.suitsMap.get(roundSuit) + ", roundPoints=" + roundPoints + '}';
     }
 
+    // clear board
     public void clear() {
 	for (int i = 0; i < this.table.length; i++)
 	    this.table[i].clear();
@@ -69,6 +86,7 @@ public class Board
 
     }
 
+    // find winner of the round
     public int findWinner() {
 
 	int max = 0, maxI = -1;
@@ -88,6 +106,43 @@ public class Board
 	}
 
 	return maxI;
+    }
+
+    // Board status
+    public boolean isEmpty() {
+	if (this.roundSuit == 0) // no suit -- board is empty
+	    return true;
+	for (int i = 0; i < this.table.length; i++)
+	    if (!(this.table[i].isEmpty()))
+		return false;
+	return true;
+    }
+
+    public boolean isFull() {
+	if (this.roundSuit == 0) // no suit -- board is empty
+	    return false;
+	for (int i = 0; i < this.table.length; i++)
+	    if ((this.table[i].isEmpty()))
+		return false;
+	return true;
+    }
+    
+    // List of cards played in a round
+    public List<Card> playedCards() {
+	List<Card> playedCards = Arrays.asList(table);
+	playedCards.removeIf((Card c) -> c.isEmpty()); //Removing empty cards
+	return playedCards;
+    }
+    
+    public void update(Card c, int playerI) {
+	
+	if (this.isEmpty())
+	    this.roundSuit = c.getSuit();
+	
+	this.roundPoints += c.points();
+	
+	this.table[playerI] = new Card(c);
+	
     }
 
     public static void main(String[] args) {

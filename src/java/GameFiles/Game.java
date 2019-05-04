@@ -44,19 +44,25 @@ public class Game
     protected Player[] players;
     protected Card clientCard;
     protected Board board;
+    protected History history;
     protected Session session;
-    //private Thread gameThread;
     protected final Object syncObject = new Object();
 
     // Constructor
     public Game(Session session) {
 
 	this.deck = new ArrayList<>(52); // Create new card deck for the game.
-	this.initDeck(); // put card values and shuffle.
+	this.initDeck(); // put card values.
+	Collections.shuffle(this.deck); // Shuffle deck.
 
+	// Split to "initPlayers" ??
 	this.players = new Player[numOfPlayers]; // Create players' array
 	for (int i = 0; i < this.players.length; i++)
-	    this.players[i] = new Player(this.deck.subList(i * handSize, i * handSize + handSize)); // assign cards for each player.
+	    this.players[i] = new Player(this.deck.subList(i * handSize, i * handSize + handSize), i); // assign cards for each player.
+
+	// DEBUG hand print
+	for (int i = 0; i < this.players.length; i++)
+	    System.out.println(this.players[i].handStr());
 
 	this.board = new Board();
 
@@ -64,31 +70,41 @@ public class Game
 	this.assignHand();
 	this.clientCard = new Card();
 
+	this.history = new History();
+
     }
 
+    // Constructors to use for inheritance.
     public Game() {
 
 	this.deck = new ArrayList<>(52); // Create new card deck for the game.
-	this.initDeck(); // put card values and shuffle.
-
+	this.initDeck(); // put card values.
 	this.players = new Player[numOfPlayers]; // Create players' array
-	for (int i = 0; i < this.players.length; i++)
-	    this.players[i] = new Player(this.deck.subList(i * handSize, i * handSize + handSize)); // assign cards for each player.
-
 	this.board = new Board();
-
 	this.session = null;
+
+	this.history = new History();
+
+    }
+
+    public Game(History h, Board b) {
+
+	this.deck = new ArrayList<>(52); // Create new card deck for the game.
+	this.initDeck(); // put card values.
+	this.players = new Player[numOfPlayers]; // Create players' array
+	this.board = new Board(b);
+	this.session = null;
+
+	this.history = new History(h);
 
     }
 
     // Create and shuffle the game's deck of cards
-    private void initDeck() {
+    public void initDeck() {
 
 	for (int i = 1; i <= numOfSuits; i++)
 	    for (int j = 2; j <= cardsInSuit + 1; j++)
 		this.deck.add(new Card(i, j));
-
-	Collections.shuffle(this.deck);
 
     }
 
@@ -139,6 +155,14 @@ public class Game
 
     public void setBoard(Board board) {
 	this.board = board;
+    }
+
+    public History getHistory() {
+	return history;
+    }
+
+    public void setHistory(History history) {
+	this.history = history;
     }
     //</editor-fold>
 
@@ -214,22 +238,22 @@ public class Game
 	{
 	    int playerI = (i + starter) % (this.players.length);
 	    Card current;
-	    if (playerI == 0)
+	    if (playerI == 0) // GUI player's turn
 	    {
 		this.checkCard();
 		current = this.clientCard;
 	    }
 	    else
 	    {
-		current = this.players[playerI].play(this.board);
+		current = this.players[playerI].play(this.board, this.history);
 		this.playCard(playesrMap.get(playerI), current.toString());
 	    }
+
+	    this.board.update(current, playerI);
+	    this.history.update(playerI, this.board.getRoundSuit(), current);
+	    
 	    if (i == 0)
-	    {
-		this.board.setRoundSuit(current.getSuit());
 		this.assignSuitGUI(this.board.getRoundSuit());
-	    }
-	    this.board.getTable()[playerI] = new Card(current);
 	}
 
     }
