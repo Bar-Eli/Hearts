@@ -1,3 +1,4 @@
+
 /* 
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -8,9 +9,17 @@
 
 
 
+/* global mag */
+
 $(document).ready(function ()
 {
     var webSocket;
+
+    var suitCount = new Object();
+    suitCount.s = 0;
+    suitCount.h = 0;
+    suitCount.d = 0;
+    suitCount.c = 0;
 
     function changeCard(cardVal, card) {
         // Create suits 'ditionary'.
@@ -53,55 +62,89 @@ $(document).ready(function ()
         {
             card = pCards[i].firstElementChild;
             var cardVal = hand.slice(2 * i, 2 * i + 2);
+            suitCount[cardVal.charAt(1)] += 1;
             changeCard(cardVal, card);
 
         }
-
     }
 
+    var roundSuit = undefined;
     // Detect card clicked by user.
     var cardClicked; // Clicked card value  in 2 chars string formation.
     var CardLI; // Card li element.
-    
+    var playBtn = $("#playBtn");
+
     $("li").click(function () {
         var suits = new Object();
         suits["♠"] = 's';
         suits["♥"] = 'h';
         suits["♦"] = 'd';
         suits["♣"] = 'c';
-        
+
         rank = this.firstElementChild.firstElementChild.innerHTML;
         if (rank === "10")
             rank = "t";
         suit = suits[this.firstElementChild.lastElementChild.innerHTML];
         cardClicked = rank + suit;
-        CardLI = this; 
+        CardLI = this;
+
+        if (roundSuit === undefined || suit === roundSuit || suitCount[roundSuit] === 0)
+            playBtn.attr("disabled", false);
+        else
+            playBtn.attr("disabled", true);
+
+
     });
 
     // Play button click
-    var playBtn = $("#playBtn");
+//    var playBtn = $("#playBtn");
     playBtn.click(function () {
 
         // Make sure a card was selected
         if (CardLI === undefined)
             return;
 
+        suitCount[cardClicked.charAt(1)]--;
+
         // Change card on board
         var playerCard = $("#playerCard");
         changeCard(cardClicked, playerCard[0]);
+        sendMessage(cardClicked);
 
         // Remove from player hand
         CardLI.remove();
 
-        // Remove from other players
-        $("#northHand")[0].firstElementChild.remove();
-        $("#westHand")[0].firstElementChild.remove();
-        $("#eastHand")[0].firstElementChild.remove();
 
         CardLI = undefined; // force playing only when a card is selected.
 
     });
 
+    function playCard(player, cardPlayed)
+    {
+        var handID = "#" + player + "Hand";
+        var cardID = "#" + player + "Card";
+
+        if (player !== "south")
+            $(handID)[0].firstElementChild.remove();
+        changeCard(cardPlayed, $(cardID)[0]);
+
+    }
+
+    function clearBoard()
+    {
+        var players = ["#playerCard", "#westCard", "#northCard", "#eastCard"];
+        for (var i = 0; i < players.length; i++)
+        {
+            c = $(players[i])[0];
+            $(c).attr("class", "card");
+            c.firstElementChild.innerHTML = '';
+            c.lastElementChild.innerHTML = '';
+        }
+        roundSuit = undefined;
+        playBtn.attr("disabled", true);
+
+
+    }
 
     function writeResponse(data)
     {
@@ -138,22 +181,24 @@ $(document).ready(function ()
             if (event.data === undefined)
                 return;
 
-
-
             writeResponse(event.data);
         };
 
         webSocket.onmessage = function (event) {
-            // var result = JSON.parse(event.data);
 
-            // result points to an object
-            // has two fields : name and data
-            //writeResponse( "user: " + result.name);
-            //  writeResponse("data: " + result.data);
+            var msg = JSON.parse(event.data); // Read message from server.
 
-            var msg = JSON.parse(event.data);
-            if (msg["type"] === "init")
+            if (msg["type"] === "init") // On Open messa ge -- deal cards.
                 dealCards(msg["hand"]);
+            if (msg["type"] === "play")
+                playCard(msg["player"], msg["card"]);
+            if (msg["type"] === "clear")
+                clearBoard();
+            if (msg["type"] === "suit")
+                roundSuit = msg["val"];
+            if (msg["type"] === "res")
+                alert(msg["res"]);
+
 
         };
 
@@ -165,18 +210,16 @@ $(document).ready(function ()
 
     }
 
-    function sendMessage()
+    function sendMessage(data)
     {
         // read data from user and send to server
-        //var name = document.getElementById('name').value;
-        //var data = document.getElementById('message').value;
         /*  
          var obj = {"name": name,"data":data, "to": "everyone"};
          var objToSend = JSON.stringify(obj);
          webSocket.send(objToSend);
          */
         //webSocket.send(name + ":" + data);
-        webSocket.send("Fucking Test");
+        webSocket.send(data);
     }
 
     createConnection();
