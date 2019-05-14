@@ -21,6 +21,45 @@ $(document).ready(function ()
     suitCount.d = 0;
     suitCount.c = 0;
 
+    var roundSuit = undefined;
+
+    //var debug = false;
+
+    var is2c = false;
+
+
+    var originals = [];
+
+    function init() {
+        var playersHand = ["#playerHand", "#westHand", "#northHand", "#eastHand"];
+        for (var i = 0; i < playersHand.length; i++)
+            originals[i] = $(playersHand[i]).clone();
+        //$(playersHand[i]).data('original-state', $(playersHand[i]).html());
+
+
+
+    }
+
+    function reset() {
+        suitCount.s = 0;
+        suitCount.h = 0;
+        suitCount.d = 0;
+        suitCount.c = 0;
+        is2c = false;
+        clearBoard();
+        var playersHand = ["#playerHand", "#westHand", "#northHand", "#eastHand"];
+        for (var i = 0; i < playersHand.length; i++)
+            $(playersHand[i]).replaceWith(originals[i].clone());
+        //$(playersHand[i]).html($(playersHand[i]).data('original-state'));
+
+
+        roundSuit = undefined;
+
+        //debug = true;
+
+
+    }
+
     function changeCard(cardVal, card) {
         // Create suits 'ditionary'.
         var suits = new Object();
@@ -62,24 +101,30 @@ $(document).ready(function ()
         {
             card = pCards[i].firstElementChild;
             var cardVal = hand.slice(2 * i, 2 * i + 2);
+
+            if (cardVal === "2c")
+                is2c = true;
+
             suitCount[cardVal.charAt(1)] += 1;
             changeCard(cardVal, card);
 
         }
     }
 
-    var roundSuit = undefined;
     // Detect card clicked by user.
     var cardClicked; // Clicked card value  in 2 chars string formation.
     var CardLI; // Card li element.
     var playBtn = $("#playBtn");
 
-    $("li").click(function () {
+    //$("li").click(function () {
+    //$("li").on("click", function () {
+    $(document).on("click", "li", function () {
         var suits = new Object();
         suits["♠"] = 's';
         suits["♥"] = 'h';
         suits["♦"] = 'd';
         suits["♣"] = 'c';
+
 
         rank = this.firstElementChild.firstElementChild.innerHTML;
         if (rank === "10")
@@ -88,16 +133,24 @@ $(document).ready(function ()
         cardClicked = rank + suit;
         CardLI = this;
 
+
+
         if (roundSuit === undefined || suit === roundSuit || suitCount[roundSuit] === 0)
             playBtn.attr("disabled", false);
         else
             playBtn.attr("disabled", true);
 
+        if (is2c === true && cardClicked !== "2c")
+            playBtn.attr("disabled", true);
+
+
+        //if (debug === true)
+        //  playBtn.attr("disabled", true);
+
 
     });
 
     // Play button click
-//    var playBtn = $("#playBtn");
     playBtn.click(function () {
 
         // Make sure a card was selected
@@ -116,6 +169,10 @@ $(document).ready(function ()
 
 
         CardLI = undefined; // force playing only when a card is selected.
+
+        if (is2c === true && cardClicked === "2c")
+            is2c = false
+
 
     });
 
@@ -146,6 +203,35 @@ $(document).ready(function ()
 
     }
 
+    // Modal (result alert) functions)
+
+    var span = document.getElementsByClassName("close")[0];
+    var modal = document.getElementById("resultsModal");
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+        modal.style.display = "none";
+    };
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    };
+
+    var resTag = document.getElementById("resString");
+    var resTitleTag = document.getElementById("ModalTitle");
+    function alertResulr(msg)
+    {
+        resTitleTag.innerHTML = msg["resTitle"];
+        resTag.innerHTML = msg["res"];
+        modal.style.display = "block";
+
+    }
+
+
+
+
     function writeResponse(data)
     {
 //        alert(data);
@@ -171,6 +257,7 @@ $(document).ready(function ()
         var addr = "ws://" + document.domain + ":" + location.port + "/HeartsProject/HeartsProject";
         webSocket = new WebSocket(addr);
 
+        init();
 
         // Bind functions to the listeners for the websocket.
         webSocket.onopen = function (event) {
@@ -197,7 +284,10 @@ $(document).ready(function ()
             if (msg["type"] === "suit")
                 roundSuit = msg["val"];
             if (msg["type"] === "res")
-                alert(msg["res"]);
+                alertResulr(msg);
+            //alert(msg["res"]);
+            if (msg["type"] === "reset")
+                reset();
 
 
         };

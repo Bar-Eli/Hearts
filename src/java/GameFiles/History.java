@@ -8,6 +8,8 @@ package GameFiles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javafx.util.Pair;
 
 /**
@@ -27,8 +29,12 @@ public class History
     public History() {
 
 	this.data = new ArrayList<>();
+
 	this.cardsOut = new boolean[5][15]; // All set to false
 	this.playersWithoutSuit = new boolean[4][5]; // All set to false;
+	
+	//this.cardsOut = new boolean[Game.numOfSuits + 1][Game.handSize + 1]; // All set to false
+	//this.playersWithoutSuit = new boolean[Game.numOfSuits][Game.numOfPlayers + 1]; // All set to false;
 
 	this.suitsCardsLeft = new int[5];
 	Arrays.fill(this.suitsCardsLeft, Game.cardsInSuit); // 13 cards for each suit.
@@ -98,13 +104,14 @@ public class History
     }
 
     //</editor-fold>
+    
     public List<Card> playedCards() {
 
 	List<Card> playedCards = new ArrayList<>();
-	
+
 	for (Pair p : this.data)
 	    playedCards.add((Card) p.getValue());
-	
+
 	return playedCards;
     }
 
@@ -143,12 +150,12 @@ public class History
 
 	for (Card card : suitCards)
 	{
-	    if(card.getVal() < val)
+	    if (card.getVal() < val)
 		risk--;
-	    if(card.getVal() > val)
+	    if (card.getVal() > val)
 		risk++;
 	}
-	
+
 	for (int i = 2; i < this.cardsOut[suit].length; i++)
 	{
 	    if (i < val && !this.cardsOut[suit][i]) // smaller card not out yet.
@@ -157,7 +164,7 @@ public class History
 	    if (i > val && !this.cardsOut[suit][i]) // higher card not out yet.
 		risk--;
 	}
-	
+
 	return risk;
 
     }
@@ -177,15 +184,31 @@ public class History
 
     }
 
+    public int[][] suitMatrix(List<Card> hand, int pID) {
+
+//	int[][] suitMatrix = new int[5][5];
+	int[][] suitMatrix = new int[Game.numOfSuits + 1][Game.numOfSuits + 1];
+	int last = suitMatrix.length - 1;
+
+	// Fill hand size for each player.
+	for (int[] row : suitMatrix)
+	    Arrays.fill(row, -1);
+
+	for (int i = 0; i < this.suitsCardsLeft.length; i++)
+	    suitMatrix[last][i] = suitsCardsLeft[i];
+
+	for (int i = 0; i < this.playersWithoutSuit.length; i++)
+	    for (int j = 0; j < this.playersWithoutSuit[0].length; j++)
+		if (this.playersWithoutSuit[i][j])
+		    suitMatrix[i][j] = 0;
+
+	return null;
+    }
+
     public static void main(String[] args) {
 
-	boolean[] bArr = new boolean[4];
-	Arrays.fill(bArr, true);
-
-	System.out.println(Arrays.toString(bArr));
-	
-	Pair<Integer, Card> p = new Pair(3, new Card("4c"));
-	System.out.println(p.getValue());
+	List<Integer> range = IntStream.range(40, 51).boxed().collect(Collectors.toList());
+	System.out.println(range);
 
     }
 
