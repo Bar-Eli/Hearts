@@ -36,7 +36,9 @@ public class WSServer
 
 	System.out.println(session.getId() + " Has opened a connection");
 	clients.add(session);
-
+	//System.out.println("Clients size: " + clients.size());
+	
+	
 	this.g = new Game(session);
 	this.g.playGame();
 	
@@ -49,6 +51,9 @@ public class WSServer
 	//System.out.println("Message received " + message);
 	String c = message.toLowerCase();
 	this.g.setClientCard(new Card(c));
+	
+	//System.out.println(this.g.getSession().getId());
+	//System.out.println(session.getId());
 
     }
 
@@ -71,7 +76,10 @@ public class WSServer
 	try
 	{
 	    for (Session s : clients)
+	    {
 		s.getBasicRemote().sendText(obj.toString());
+		System.out.println("playCard sesstions: " + s.getId());
+	    }
 	} catch (IOException ex) {
 	    Logger.getLogger(WSServer.class.getName()).log(Level.SEVERE, null, ex);
 	}

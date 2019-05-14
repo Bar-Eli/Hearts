@@ -5,6 +5,7 @@
  */
 package GameFiles;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -98,11 +99,12 @@ public class Board
 		max = c.getVal();
 		maxI = i;
 	    }
+	    /*
 	    if (c.getSuit() == 4)
 		this.roundPoints++;
 	    if (c.equals("qs"))
 		this.roundPoints += 13;
-
+	    */
 	}
 
 	return maxI;
@@ -129,8 +131,8 @@ public class Board
     
     // List of cards played in a round
     public List<Card> playedCards() {
-	List<Card> playedCards = Arrays.asList(table);
-	playedCards.removeIf((Card c) -> c.isEmpty()); //Removing empty cards
+	List<Card> playedCards = new ArrayList(Arrays.asList(table));
+	playedCards.removeIf((Card c) -> c.getSuit() == 0); //Removing empty cards
 	return playedCards;
     }
     
@@ -147,7 +149,11 @@ public class Board
 
     public static void main(String[] args) {
 
-	System.out.println((3 + 2) % 4);
+	Board b = new Board();
+	b.update(new Card("2c"), 0);
+	b.update(new Card("qs"), 3);
+	
+	System.out.println(b.playedCards());
     }
 
 }

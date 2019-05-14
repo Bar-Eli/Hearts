@@ -37,6 +37,9 @@ public class DemoPlayer extends Player
 	super(hand, id);
 	this.originalHand = new ArrayList<>(this.hand);
 	this.mustPlay = new Card();
+
+	// DEBUG 
+//	System.out.println(this.handStr());
     }
 
     //</editor-fold>
@@ -144,11 +147,11 @@ public class DemoPlayer extends Player
 		continue;
 	    if (!history.pointsChance(suitCards.get(0).getSuit(), suitCards)) // play highest card when there's no chance for points
 		return suitCards.get(suitCards.size() - 1);
-	    
+
 	    for (int i = suitCards.size() - 1; i >= 0; i--)
 	    {
 		Card c = suitCards.get(i);
-		if(history.risk(c, suitCards) <= 0) // return highest non risky card.
+		if (history.risk(c, suitCards) <= 0) // return highest non risky card.
 		    return c;
 	    }
 	}
@@ -158,6 +161,13 @@ public class DemoPlayer extends Player
 
     @Override
     public Card play(Board board, History history) {
+	
+	// DEBUG
+	//System.out.println("ID: " + this.id + "Hand size: " + this.hand.size());
+	if (this.hand.size() == 0)
+	    return new Card();
+	
+
 
 	// force play of a card
 	if (!this.mustPlay.isEmpty())
@@ -168,7 +178,13 @@ public class DemoPlayer extends Player
 	    return c;
 	}
 
-	// Add strategy play (no monte ccarlo)
+	if(this.hand.get(0).equals("2c"))
+	    return this.hand.remove(0);
+
+	// Only one option to play
+	if (this.hand.size() == 1)
+	    return this.hand.remove(0);
+
 	int suit = board.getRoundSuit();
 
 	// plays first

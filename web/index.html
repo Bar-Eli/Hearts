@@ -21,7 +21,7 @@ and open the template in the editor.
     </head>
 
     <body>
-        <div class="fullscreen">
+        <div class="fullscreen" id="entirePage">
 
             <!--North-->
             <div class="w3-row w3-container" style="height:20%; border:1px solid black; overflow: hidden; position: relative">North
@@ -139,7 +139,7 @@ and open the template in the editor.
 
                 </div>
             </div>
-            
+
             <!--South-->
             <div class="w3-row w3-container " style="height:30%; overflow:auto; border:1px solid black">South
                 <button type="button" id="playBtn">Play</button>
@@ -227,6 +227,19 @@ and open the template in the editor.
                 </div>
             </div>
         </div>
+
+        <!-- The Modal -->
+        <div id="resultsModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <p><b id="ModalTitle">Results</b></p>
+                <p id="resString" class="fullspace">  </p>
+            </div>
+
+        </div>
+
 
     </body>
 

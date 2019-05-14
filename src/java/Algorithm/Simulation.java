@@ -31,23 +31,30 @@ public class Simulation extends Game
 	this.currentSize = p.getHand().size();
 	this.simPlayerID = p.getId();
 
-	// Remove irrelevant cards from deck.	
-	//this.deck.removeAll(p.getHand());
-	Collections.shuffle(this.deck); // Shuffle deck.
-
+	//Collections.shuffle(this.deck); // Shuffle deck.
 	this.players[p.getId()] = new DemoPlayer(p); // Demo player for checking
 
 	// Init demo players
 	this.initPlayers();
 
-	System.out.println("Simulation for player " + this.simPlayerID);
-
 	// DEBUG hand print
-	//for (int i = 0; i < this.players.length; i++)
-	//{
-	//String s = (this.players[i]).handStr();
-	//System.out.println("Sim " + i + " hand: " + s);
-	//}
+	//<editor-fold>
+	/*
+	for (int i = 0; i < this.players.length; i++)
+	{
+	    String s = (this.players[i]).handStr();
+	    System.out.println("Sim " + i + " hand: " + s);
+	}
+	System.out.println(this.deck);
+	 
+	System.out.println("Simulation for player " + this.simPlayerID);
+	String str = "Sizes: ";
+	for (int i = 0; i < this.players.length; i++)
+	    str += i + ": " + this.players[i].getHand().size() + "\t";
+	System.out.println(str);
+	System.out.println("Deck: " + this.deck);
+	 */
+	//</editor-fold>
     }
 
     public void initPlayers() {
@@ -74,20 +81,34 @@ public class Simulation extends Game
 	    size--;
 
 	boolean[] missingSuits = this.history.getPlayersWithoutSuit()[id];
-	List<Card> hand = new ArrayList();
+	List<Card> hand = new ArrayList(Game.handSize);
 
-	
-	while (size > 0)
+	//<editor-fold>
+	/*
+	for (int i = 0; i < size; i++)
+	    hand.add(this.deck.get(i));
+	 */
+	//</editor-fold>
+	for (int i = 0; i < this.deck.size() && size > 0; i++)
 	{
-	    Card c = this.deck.get(0);
+	    Card c = this.deck.get(i);
 	    if (!missingSuits[c.getSuit()])
 	    {
 		hand.add(c);
-		this.deck.remove(0);
 		size--;
 	    }
 	}
-	
+
+	// BUG FIX (TEMP)
+	this.deck.removeAll(hand); // remove all dealt cards from deck;
+	if (size > 0)
+	{
+	    //System.out.println(this.deck);
+	    for (int i = 0; i < this.deck.size() && size > 0; i++)
+		hand.add(this.deck.get(i));
+	}
+
+	this.deck.removeAll(hand); // remove all dealt cards from deck;
 	return hand;
     }
 
@@ -100,6 +121,8 @@ public class Simulation extends Game
 	    ((DemoPlayer) this.players[i]).reset();
     }
 
+    //<editor-fold>
+    /*
     @Override
     public int findStarter() {
 
@@ -114,24 +137,22 @@ public class Simulation extends Game
 
 	return -1;
     }
-
+     */
+    //</editor-fold>
     @Override
     public void doTurn(int starter) {
 
 	for (int i = 0; i < this.players.length; i++)
 	{
-
 	    int playerI = (i + starter) % (this.players.length);
 	    Card current;
 
-	    if (!this.board.getTable()[playerI].isEmpty()) // partly played round
+	    if (!this.board.getTable()[playerI].isEmpty()) // partly played round (stop when cards already played)
 		break;
 
 	    current = this.players[playerI].play(this.board, this.history);
-
-	    if (i == 0)
-		this.board.setRoundSuit(current.getSuit());
-	    this.board.getTable()[playerI] = new Card(current);
+	    this.board.update(current, playerI);
+	    this.history.update(playerI, this.board.getRoundSuit(), current);
 	}
     }
 
@@ -144,6 +165,12 @@ public class Simulation extends Game
 	for (int i = 0; i < this.currentSize; i++)
 	{
 	    this.doTurn(starter);
+	    if (!this.board.isFull())
+	    {
+		//System.out.println("Not full board!!");
+		return;
+	    }
+	    
 	    starter = this.board.findWinner();
 //	    System.out.println(this.board);
 	    this.players[starter].addScore(this.board.getRoundPoints());
@@ -153,20 +180,20 @@ public class Simulation extends Game
 	//System.out.println(Arrays.toString(this.players));
 
 	// DEBUG print
-	System.out.println("Simulating Card " + c + ", Result: " + this.players[this.simPlayerID].getScore());
+	//System.out.println("Simulating Card " + c + ", Result: " + this.players[this.simPlayerID].getScore());
     }
 
+    // FOR TEST RESULTS
     public int getPlayerScore() {
 	return this.players[this.simPlayerID].getScore();
     }
 
     public static void main(String[] args) {
-	Game g = new Game();
-	Collections.shuffle(g.getDeck());
+
 	ArrayList<Card> hand = new ArrayList<>();
-	for (int i = 0; i < 13; i++)
-	    hand.add(new Card(g.getDeck().get(i)));
-	Player p = new Player(hand, 0);
+//	hand.add(new Card("3d"));
+//	hand.add(new Card("7s"));
+	System.out.println(hand.size());
 
 //	Simulation s = new Simulation(p);
 //	s.simulateGame();

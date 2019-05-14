@@ -66,7 +66,9 @@ public class Player
     }
 
     public void setHand(List<Card> hand) {
-	this.hand = hand;
+	this.hand = new ArrayList(hand);
+	Collections.sort(this.hand);
+
     }
 
     public int getId() {
@@ -87,10 +89,10 @@ public class Player
 
     // return a card which is the only one of its suits in player's hand (if exsists).
     public Card oneInSuit() {
-
 	// Add -- return card with max val of when many oneInSuit cards.
-	
+
 	Card c = this.hand.get(0);
+
 	int suitCount = 1;
 
 	for (int i = 1; i < this.hand.size(); i++)
@@ -125,66 +127,49 @@ public class Player
 
 	int qVal = Card.cardsMap.getKey('q');
 	List<Card> spades = cardsOfSuit(Card.suitsMap.getKey('s'));
-	
+
 	for (Card c : spades)
 	    if (c.getVal() >= qVal)
 		return c;
-	
+
 	return new Card();
 
     }
 
     public Card highVal() {
-	
+
 	Card max = new Card();
-	
-	for(Card c : this.hand)
-	    if(c.getVal() > max.getVal())
+
+	for (Card c : this.hand)
+	    if (c.getVal() > max.getVal())
 		max = c;
-	
-	if(max.isEmpty())
+
+	if (max.isEmpty())
 	    System.out.println("Max Card is empty");
-	
+
 	return max;
     }
-    
+
     public Card lowVal() {
-	
-	return new Card();
+
+	Card min = this.hand.get(0);
+
+	for (Card c : this.hand)
+	    if (c.getVal() < min.getVal())
+		min = c;
+
+	return min;
     }
-    
+
     public Card play(Board board, History history) {
+
+	//System.out.println("Player");
 
 	// Remove selected card from player's hand
 	Card bestCard = MonteCarlo.findBestCard(this, board, history);
 	this.hand.remove(bestCard);
 	return bestCard;
 
-	/*
-	
-	int suit = board.getRoundSuit();
-	Card c = new Card();
-
-	if (suit == 0)
-	    c = this.hand.get(0);
-	else
-	    for (int i = 0; i < this.hand.size(); i++)
-		if (this.hand.get(i).getSuit() == suit)
-		{
-		    c = this.hand.get(i);
-		    break;
-		}
-
-	if (c.isEmpty())
-	    c = this.hand.get(0);
-
-	History h = new History();
-	Simulation s = new Simulation(this, h, board);
-	s.simulateGame(c);
-
-	this.hand.remove(c);
-	return c;
-	 */
     }
 
     public String handStr() {

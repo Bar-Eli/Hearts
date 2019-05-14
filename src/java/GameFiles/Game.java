@@ -5,6 +5,8 @@
  */
 package GameFiles;
 
+import Algorithm.DemoPlayer;
+import Algorithm.RandomPlayer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,22 +49,36 @@ public class Game
     protected History history;
     protected Session session;
     protected final Object syncObject = new Object();
+    
+    private String res;
+    private int roundNum;
 
     // Constructor
     public Game(Session session) {
 
-	this.deck = new ArrayList<>(52); // Create new card deck for the game.
+	//this.deck = new ArrayList<>(52); // Create new card deck for the game.
 	this.initDeck(); // put card values.
-	Collections.shuffle(this.deck); // Shuffle deck.
 
-	// Split to "initPlayers" ??
+	//Collections.shuffle(this.deck); // Shuffle deck.
+
 	this.players = new Player[numOfPlayers]; // Create players' array
-	for (int i = 0; i < this.players.length; i++)
-	    this.players[i] = new Player(this.deck.subList(i * handSize, i * handSize + handSize), i); // assign cards for each player.
+	// Players of different levels
+	this.players[0] = new Player(this.deck.subList(0 * handSize, 0 * handSize + handSize), 0); // assign cards for each player.
+	this.players[1] = new RandomPlayer(this.deck.subList(1 * handSize, 1 * handSize + handSize), 1); // assign cards for each player.
+	this.players[2] = new Player(this.deck.subList(2 * handSize, 2 * handSize + handSize), 2); // assign cards for each player.
+	this.players[3] = new DemoPlayer(this.deck.subList(3 * handSize, 3 * handSize + handSize), 3); // assign cards for each player.
 
+	// Init result String
+	this.res = String.format("%-8s", "Round#");
+	for (int i = 0; i < numOfPlayers; i++)
+	    this.res += String.format("%-8s", playesrMap.get(i));
+	this.res += "\n";
+	this.roundNum = 1;
+	
 	// DEBUG hand print
 	for (int i = 0; i < this.players.length; i++)
-	    System.out.println(this.players[i].handStr());
+	    System.out.println(this.players[i].getHand());
+	//System.out.println(this.players[i].handStr());
 
 	this.board = new Board();
 
@@ -78,7 +94,7 @@ public class Game
     public Game() {
 
 	this.deck = new ArrayList<>(52); // Create new card deck for the game.
-	this.initDeck(); // put card values.
+	this.initDeck(); // put card values and shuffle.
 	this.players = new Player[numOfPlayers]; // Create players' array
 	this.board = new Board();
 	this.session = null;
@@ -102,10 +118,20 @@ public class Game
     // Create and shuffle the game's deck of cards
     public void initDeck() {
 
+	this.deck = new ArrayList<>(52); // Create new card deck for the game.
+
 	for (int i = 1; i <= numOfSuits; i++)
 	    for (int j = 2; j <= cardsInSuit + 1; j++)
 		this.deck.add(new Card(i, j));
 
+	Collections.shuffle(this.deck); // Shuffle deck.
+
+    }
+
+    // Deal cards for player.
+    public List<Card> dealCards(int id) {
+
+	return this.deck.subList(id * handSize, id * handSize + handSize);
     }
 
     // Assign hand to client (send hand's string formation)
@@ -164,6 +190,14 @@ public class Game
     public void setHistory(History history) {
 	this.history = history;
     }
+
+    public Session getSession() {
+	return session;
+    }
+
+    public void setSession(Session session) {
+	this.session = session;
+    }
     //</editor-fold>
 
     // Set the card played by cliend and notify waiting thread.
@@ -183,20 +217,27 @@ public class Game
 	{
 	    @Override
 	    public void run() {
-
-		int starter = Game.this.findStarter();
-		for (int i = 0; i < Game.handSize; i++)
+		
+		//Game.this.newRound(); // DEBUG
+		while (!Game.this.isGameOver())
 		{
-		    Game.this.doTurn(starter);
-		    Game.this.clearBoardGUI();
-		    starter = Game.this.board.findWinner();
-		    System.out.println(Game.this.board);
-		    Game.this.players[starter].addScore(Game.this.board.getRoundPoints());
-		    Game.this.clientCard.clear();
-		    Game.this.board.clear();
 
+		    int starter = Game.this.findStarter();
+		    for (int i = 0; i < Game.handSize; i++)
+		    {
+			Game.this.doTurn(starter);
+			Game.this.clearBoardGUI();
+			starter = Game.this.board.findWinner();
+			System.out.println(Game.this.board);
+			Game.this.players[starter].addScore(Game.this.board.getRoundPoints());
+			Game.this.clientCard.clear();
+			Game.this.board.clear();
+		    }
+		    sendRes();
+		    if (!Game.this.isGameOver())
+			Game.this.newRound();
 		}
-		sendRes();
+		System.out.println("Game Over!!!");
 	    }
 	};
 
@@ -251,11 +292,58 @@ public class Game
 
 	    this.board.update(current, playerI);
 	    this.history.update(playerI, this.board.getRoundSuit(), current);
-	    
+
 	    if (i == 0)
 		this.assignSuitGUI(this.board.getRoundSuit());
 	}
 
+    }
+
+    public void newRound() {
+	
+	this.roundNum++;
+	
+	this.initDeck();
+	this.board.clear();
+
+	
+	for (int i = 0; i < this.players.length; i++)
+	    this.players[i].setHand(this.dealCards(i));
+
+	this.clientCard.clear();
+
+	this.history = new History();
+	  
+
+	
+	//<editor-fold defaultstate="collapsed" desc="Reset client">
+	JSONObject obj = new JSONObject();
+	obj.put("type", "reset");
+	
+	try
+	{
+	    this.session.getBasicRemote().sendText(obj.toString());
+
+	} catch (IOException ex)
+	{
+	    Logger.getLogger(Game.class
+		    .getName()).log(Level.SEVERE, null, ex);
+	}
+	//</editor-fold>
+	
+
+
+	this.assignHand();
+	
+
+    }
+
+    public boolean isGameOver() {
+
+	for (Player p : this.players)
+	    if (p.getScore() >= 100)
+		return true;
+	return false;
     }
 
     public void assignSuitGUI(int suitNum) {
@@ -326,14 +414,19 @@ public class Game
     }
 
     public void sendRes() {
-	String res = "";
+	
+	this.res += String.format("%-8d", this.roundNum);
 	for (int i = 0; i < numOfPlayers; i++)
-	    res += "\n" + playesrMap.get(i) + " " + i + " " + this.players[i].getScore();
-	System.out.println(res);
+	    this.res += String.format("%-8d", this.players[i].getScore());
+	this.res += "\n";
+	System.out.println(this.res);
 
+	String resTitle = !this.isGameOver() ? "Results" : "Game Over!!!";
+	
 	JSONObject obj = new JSONObject();
 	obj.put("type", "res");
-	obj.put("res", res);
+	obj.put("res", this.res);
+	obj.put("resTitle", resTitle);
 
 	//<editor-fold defaultstate="collapsed" desc="Send to client">
 	try
